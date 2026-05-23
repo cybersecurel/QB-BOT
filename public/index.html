@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QB Bot Dashboard — Qurban</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070d0f;
+            --surface: #0d1a1f;
+            --card: #112028;
+            --border: #1a3040;
+            --accent: #00e5aa;
+            --accent2: #00b8ff;
+            --accent3: #7c3aed;
+            --text: #e8f4f8;
+            --muted: #4a7a8a;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --success: #00e5aa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── ANIMATED BACKGROUND ── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,229,170,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,184,255,0.05) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 50% 50%, rgba(124,58,237,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── GRID OVERLAY ── */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(0,229,170,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,170,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            text-align: center;
+            padding: 40px 0 30px;
+            animation: fadeDown 0.7s ease both;
+        }
+
+        .bot-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 0 40px rgba(0,229,170,0.3), 0 0 80px rgba(0,229,170,0.1);
+            animation: pulse-glow 3s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 40px rgba(0,229,170,0.3), 0 0 80px rgba(0,229,170,0.1); }
+            50% { box-shadow: 0 0 60px rgba(0,229,170,0.5), 0 0 120px rgba(0,229,170,0.2); }
+        }
+
+        .header h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(0,229,170,0.15), rgba(0,184,255,0.1));
+            border: 1px solid rgba(0,229,170,0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ── STATUS ROW ── */
+        .status-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.7s 0.1s ease both;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+        }
+
+        /* ── MAIN CARD ── */
+        .main-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.7s 0.2s ease both;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+        }
+
+        .section-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        /* ── STEP INDICATOR ── */
+        .steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 28px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .step {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            cursor: default;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, rgba(0,229,170,0.2), rgba(0,184,255,0.15));
+            color: var(--accent);
+            border: 1px solid rgba(0,229,170,0.3);
+        }
+
+        .step.done {
+            color: var(--success);
+        }
+
+        /* ── PHONE FORMAT GUIDE ── */
+        .format-guide {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .format-guide h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .format-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .format-row .badge {
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .badge.wrong { background: rgba(255,68,68,0.2); color: var(--danger); border: 1px solid rgba(255,68,68,0.3); }
+        .badge.right { background: rgba(0,229,170,0.2); color: var(--accent); border: 1px solid rgba(0,229,170,0.3); }
+
+        .format-row .num { color: var(--text); }
+
+        /* ── INPUT ── */
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            padding: 14px 16px 14px 48px;
+            outline: none;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"]::placeholder { color: var(--muted); letter-spacing: 1px; }
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            background: rgba(0,229,170,0.05);
+            box-shadow: 0 0 0 3px rgba(0,229,170,0.1);
+        }
+
+        /* ── BUTTON ── */
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--accent), #00c49a);
+            color: #070d0f;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before { left: 100%; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(0,229,170,0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── CODE DISPLAY ── */
+        .code-display {
+            display: none;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            margin-top: 20px;
+            animation: codeReveal 0.5s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes codeReveal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .code-display::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        .code-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .code-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.6rem;
+            font-weight: 600;
+            letter-spacing: 10px;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(0,229,170,0.5);
+        }
+
+        .code-instructions {
+            margin-top: 16px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .code-instructions strong { color: var(--text); }
+
+        .copy-btn {
+            margin-top: 14px;
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── STATUS MESSAGE ── */
+        .status-msg {
+            margin-top: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status-msg.info { background: rgba(0,184,255,0.1); border: 1px solid rgba(0,184,255,0.3); color: var(--accent2); }
+        .status-msg.success { background: rgba(0,229,170,0.1); border: 1px solid rgba(0,229,170,0.3); color: var(--success); }
+        .status-msg.error { background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.3); color: var(--danger); }
+
+        /* ── FEATURES GRID ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.7s 0.3s ease both;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            background: rgba(0,229,170,0.04);
+        }
+
+        .feature-icon { font-size: 1.4rem; margin-bottom: 8px; }
+        .feature-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: var(--text);
+        }
+
+        .feature-desc {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        /* ── COMMANDS PREVIEW ── */
+        .commands-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.7s 0.4s ease both;
+        }
+
+        .cmd-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cmd-tab {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .cmd-tab.active, .cmd-tab:hover {
+            background: linear-gradient(135deg, rgba(0,229,170,0.2), rgba(0,184,255,0.1));
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .cmd-list {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .cmd-list.visible { display: grid; }
+
+        .cmd-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            transition: all 0.2s;
+        }
+
+        .cmd-item:hover { border-color: rgba(0,229,170,0.4); background: rgba(0,229,170,0.04); }
+
+        .cmd-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .cmd-desc {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            text-align: center;
+            padding: 24px 0 32px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 1px;
+            animation: fadeUp 0.7s 0.5s ease both;
+        }
+
+        .footer span { color: var(--accent); font-weight: 700; }
+
+        /* ── LOADING ── */
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(7,13,15,0.3);
+            border-top-color: #070d0f;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2rem; }
+            .status-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-value { font-size: 1.2rem; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .cmd-list { grid-template-columns: 1fr; }
+            .code-value { font-size: 2rem; letter-spacing: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="bot-logo">🤖</div>
+        <h1>QB Bot</h1>
+        <p>WhatsApp Automation Dashboard</p>
+        <div class="admin-badge">👑 Powered by Qurban</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="status-row">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-status">●</div>
+            <div class="stat-label">Bot Status</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-uptime">—</div>
+            <div class="stat-label">Uptime</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">35+</div>
+            <div class="stat-label">Commands</div>
+        </div>
+    </div>
+
+    <!-- PAIRING CARD -->
+    <div class="main-card">
+        <div class="section-title">🔗 Link Your WhatsApp</div>
+
+        <div class="steps">
+            <div class="step active" id="step1">① Enter Number</div>
+            <div class="step" id="step2">② Get Code</div>
+            <div class="step" id="step3">③ Scan in App</div>
+        </div>
+
+        <div class="format-guide">
+            <h3>🇵🇰 Pakistan Number Format</h3>
+            <div class="format-row"><span class="badge wrong">WRONG</span><span class="num">+923001234567</span></div>
+            <div class="format-row"><span class="badge wrong">WRONG</span><span class="num">03001234567</span></div>
+            <div class="format-row"><span class="badge right">CORRECT ✓</span><span class="num">923001234567</span></div>
+        </div>
+
+        <div class="input-group">
+            <label>Phone Number</label>
+            <div class="input-wrapper">
+                <span class="input-icon">📱</span>
+                <input type="text" id="phone" placeholder="923001234567" maxlength="20">
+            </div>
+        </div>
+
+        <button class="btn-primary" id="getCodeBtn" onclick="getCode()">
+            Generate Pairing Code
+        </button>
+
+        <div class="status-msg" id="statusMsg"></div>
+
+        <div class="code-display" id="codeDisplay">
+            <div class="code-label">Your Pairing Code</div>
+            <div class="code-value" id="codeValue">— — — —</div>
+            <div class="code-instructions">
+                Open WhatsApp → <strong>Settings</strong> → <strong>Linked Devices</strong><br>
+                → <strong>Link a Device</strong> → <strong>Link with Phone Number</strong><br>
+                Enter the code above within <strong>60 seconds</strong>
+            </div>
+            <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <div class="feature-name">Anti-Link</div>
+            <div class="feature-desc">Auto-delete links in groups</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-name">AI Mode</div>
+            <div class="feature-desc">Smart auto-replies</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">👋</div>
+            <div class="feature-name">Welcome</div>
+            <div class="feature-desc">Auto welcome messages</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-name">Anti-Spam</div>
+            <div class="feature-desc">Flood control system</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <div class="feature-name">Auto React</div>
+            <div class="feature-desc">React to messages</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📢</div>
+            <div class="feature-name">Broadcast</div>
+            <div class="feature-desc">Mass message all groups</div>
+        </div>
+    </div>
+
+    <!-- COMMANDS PREVIEW -->
+    <div class="commands-card">
+        <div class="section-title">📋 Commands Preview</div>
+
+        <div class="cmd-tabs">
+            <button class="cmd-tab active" onclick="showCmds('general', this)">General</button>
+            <button class="cmd-tab" onclick="showCmds('fun', this)">Fun</button>
+            <button class="cmd-tab" onclick="showCmds('group', this)">Group</button>
+            <button class="cmd-tab" onclick="showCmds('ai', this)">AI</button>
+            <button class="cmd-tab" onclick="showCmds('admin', this)">Admin</button>
+        </div>
+
+        <div class="cmd-list visible" id="cmds-general">
+            <div class="cmd-item"><div class="cmd-name">.menu</div><div class="cmd-desc">Show full command menu</div></div>
+            <div class="cmd-item"><div class="cmd-name">.ping</div><div class="cmd-desc">Check bot response speed</div></div>
+            <div class="cmd-item"><div class="cmd-name">.alive</div><div class="cmd-desc">Check bot status & uptime</div></div>
+            <div class="cmd-item"><div class="cmd-name">.dp [@user]</div><div class="cmd-desc">View profile picture</div></div>
+            <div class="cmd-item"><div class="cmd-name">.weather [city]</div><div class="cmd-desc">Live weather data</div></div>
+            <div class="cmd-item"><div class="cmd-name">.calc [expr]</div><div class="cmd-desc">Calculator</div></div>
+            <div class="cmd-item"><div class="cmd-name">.wiki [topic]</div><div class="cmd-desc">Wikipedia search</div></div>
+            <div class="cmd-item"><div class="cmd-name">.define [word]</div><div class="cmd-desc">Dictionary lookup</div></div>
+        </div>
+
+        <div class="cmd-list" id="cmds-fun">
+            <div class="cmd-item"><div class="cmd-name">.joke</div><div class="cmd-desc">Random funny joke</div></div>
+            <div class="cmd-item"><div class="cmd-name">.fact</div><div class="cmd-desc">Random interesting fact</div></div>
+            <div class="cmd-item"><div class="cmd-name">.quote</div><div class="cmd-desc">Inspirational quote</div></div>
+            <div class="cmd-item"><div class="cmd-name">.8ball [q]</div><div class="cmd-desc">Magic 8-Ball answer</div></div>
+            <div class="cmd-item"><div class="cmd-name">.flip</div><div class="cmd-desc">Flip a coin</div></div>
+            <div class="cmd-item"><div class="cmd-name">.dice</div><div class="cmd-desc">Roll a dice</div></div>
+            <div class="cmd-item"><div class="cmd-name">.rps [choice]</div><div class="cmd-desc">Rock Paper Scissors</div></div>
+            <div class="cmd-item"><div class="cmd-name">.riddle</div><div class="cmd-desc">Interactive riddle game</div></div>
+        </div>
+
+        <div class="cmd-list" id="cmds-group">
+            <div class="cmd-item"><div class="cmd-name">.kick @user</div><div class="cmd-desc">Remove a member</div></div>
+            <div class="cmd-item"><div class="cmd-name">.promote @user</div><div class="cmd-desc">Make admin</div></div>
+            <div class="cmd-item"><div class="cmd-name">.demote @user</div><div class="cmd-desc">Remove admin</div></div>
+            <div class="cmd-item"><div class="cmd-name">.mute / .unmute</div><div class="cmd-desc">Control messaging</div></div>
+            <div class="cmd-item"><div class="cmd-name">.everyone</div><div class="cmd-desc">Tag all members</div></div>
+            <div class="cmd-item"><div class="cmd-name">.tagadmins</div><div class="cmd-desc">Tag all admins</div></div>
+            <div class="cmd-item"><div class="cmd-name">.ginfo</div><div class="cmd-desc">Group information</div></div>
+            <div class="cmd-item"><div class="cmd-name">.glink</div><div class="cmd-desc">Get invite link</div></div>
+        </div>
+
+        <div class="cmd-list" id="cmds-ai">
+            <div class="cmd-item"><div class="cmd-name">.ai [text]</div><div class="cmd-desc">Ask AI anything</div></div>
+            <div class="cmd-item"><div class="cmd-name">.ask [q]</div><div class="cmd-desc">Quick question</div></div>
+            <div class="cmd-item"><div class="cmd-name">.translate [lang]</div><div class="cmd-desc">Translate text</div></div>
+            <div class="cmd-item"><div class="cmd-name">.ai on/off</div><div class="cmd-desc">Toggle auto AI reply</div></div>
+        </div>
+
+        <div class="cmd-list" id="cmds-admin">
+            <div class="cmd-item"><div class="cmd-name">.broadcast</div><div class="cmd-desc">Message all groups</div></div>
+            <div class="cmd-item"><div class="cmd-name">.block [num]</div><div class="cmd-desc">Block a contact</div></div>
+            <div class="cmd-item"><div class="cmd-name">.restart</div><div class="cmd-desc">Restart the bot</div></div>
+            <div class="cmd-item"><div class="cmd-name">.clearcache</div><div class="cmd-desc">Clear bot cache</div></div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        QB Bot <span>v2.0</span> • Made with ❤️ by <span>Qurban</span> • Pakistan 🇵🇰
+    </div>
+
+</div>
+
+<script>
+    // ── STATUS CHECK ──────────────────────────
+    async function checkStatus() {
+        try {
+            const res = await fetch('/status');
+            const data = await res.json();
+            const el = document.getElementById('stat-status');
+            const up = document.getElementById('stat-uptime');
+            el.textContent = data.connected ? '🟢' : '🔴';
+            el.style.fontSize = '1.4rem';
+            const mins = Math.floor(data.uptime / 60);
+            const secs = data.uptime % 60;
+            up.textContent = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        } catch {
+            document.getElementById('stat-status').textContent = '🔴';
+        }
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 10000);
+
+    // ── GET CODE ──────────────────────────────
+    async function getCode() {
+        const phone = document.getElementById('phone').value.trim();
+        const btn = document.getElementById('getCodeBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const codeDisplay = document.getElementById('codeDisplay');
+
+        // Validation
+        if (!phone) {
+            showStatus('⚠️ Please enter your phone number!', 'error');
+            return;
+        }
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length < 10 || cleaned.length > 15) {
+            showStatus('⚠️ Phone number looks incorrect. Example: 923001234567', 'error');
+            return;
+        }
+
+        // Update UI
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader"></span>GENERATING CODE...';
+        showStatus('⏳ Connecting to WhatsApp servers...', 'info');
+        codeDisplay.style.display = 'none';
+        setStep(2);
+
+        try {
+            const response = await fetch('/get-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: cleaned })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('codeValue').textContent = data.code;
+                codeDisplay.style.display = 'block';
+                showStatus('✅ Code generated! Enter it in WhatsApp within 60 seconds.', 'success');
+                setStep(3);
+            } else {
+                showStatus('❌ ' + data.message, 'error');
+                setStep(1);
+            }
+        } catch {
+            showStatus('❌ Server error. Make sure bot is running!', 'error');
+            setStep(1);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Generate Pairing Code';
+        }
+    }
+
+    function showStatus(msg, type) {
+        const el = document.getElementById('statusMsg');
+        el.textContent = msg;
+        el.className = `status-msg ${type}`;
+        el.style.display = 'block';
+    }
+
+    function setStep(n) {
+        ['step1', 'step2', 'step3'].forEach((id, i) => {
+            const el = document.getElementById(id);
+            el.className = 'step' + (i + 1 === n ? ' active' : (i + 1 < n ? ' done' : ''));
+        });
+    }
+
+    function copyCode() {
+        const code = document.getElementById('codeValue').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => btn.textContent = '📋 Copy Code', 2000);
+        });
+    }
+
+    // ── CMD TABS ──────────────────────────────
+    function showCmds(cat, tabEl) {
+        document.querySelectorAll('.cmd-list').forEach(el => el.classList.remove('visible'));
+        document.querySelectorAll('.cmd-tab').forEach(el => el.classList.remove('active'));
+        document.getElementById('cmds-' + cat).classList.add('visible');
+        tabEl.classList.add('active');
+    }
+
+    // ── ENTER KEY ─────────────────────────────
+    document.getElementById('phone').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') getCode();
+    });
+</script>
+</body>
+</html>
